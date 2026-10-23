@@ -2,10 +2,16 @@ const { app, BrowserWindow, ipcMain, safeStorage, shell, dialog, net, Menu } = r
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { writeFile } = require('node:fs/promises');
+const { mkdirSync } = require('node:fs');
 let win, service;
 const dev = !app.isPackaged && process.env.PAPERDAY_DEV === '1';
 const rendererUrl = dev ? 'http://127.0.0.1:5173/' : pathToFileURL(path.join(__dirname, '../dist/index.html')).href;
 app.setName('PaperDay');
+if (!app.isPackaged && process.env.PAPERDAY_DATA_DIR) {
+  const testDirectory = path.resolve(process.env.PAPERDAY_DATA_DIR);
+  mkdirSync(testDirectory, { recursive: true });
+  app.setPath('userData', testDirectory);
+}
 app.setAppUserModelId('com.paperday.desktop');
 if (!app.requestSingleInstanceLock()) app.quit();
 else {
@@ -42,7 +48,7 @@ else {
       if (!result.canceled && result.filePath) { await writeFile(result.filePath, markdown, 'utf8'); return true; } return false;
     });
     Menu.setApplicationMenu(null);
-    win = new BrowserWindow({ width: 1400, height: 940, minWidth: 960, minHeight: 680, backgroundColor: '#f5f6f2', title: '见微 PaperDay', icon: path.join(__dirname, '../assets/icon.ico'), show: false, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+    win = new BrowserWindow({ width: 1400, height: 940, minWidth: 960, minHeight: 680, backgroundColor: '#191f1e', title: '见微 PaperDay', icon: path.join(__dirname, '../assets/icon.ico'), show: false, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     win.webContents.on('will-navigate', (e, url) => { if (url !== rendererUrl) e.preventDefault(); });
     win.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
