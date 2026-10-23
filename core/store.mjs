@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { defaultSettings } from './catalog.mjs';
-export const emptyState = () => ({ version: 1, settings: { ...defaultSettings, topics: [...defaultSettings.topics] }, encryptedKey: '', papers: {}, history: [], daily: {}, summaries: {}, cache: {} });
+export const emptyState = () => ({ version: 1, settings: { ...defaultSettings, topics: [...defaultSettings.topics] }, focus: null, encryptedKey: '', papers: {}, history: [], daily: {}, summaries: {}, cache: {} });
 export class Store {
   constructor(directory) { this.directory = directory; this.file = join(directory, 'library.json'); this.state = emptyState(); this.queue = Promise.resolve(); }
   async open() {
@@ -19,7 +19,16 @@ export class Store {
       const temp = `${this.file}.tmp`;
       await writeFile(temp, JSON.stringify(next, null, 2), { encoding: 'utf8', mode: 0o600 });
       try { await copyFile(this.file, `${this.file}.bak`); } catch (e) { if (e.code !== 'ENOENT') throw e; }
-      await rename(temp, this.file); this.state = next; return result;
+      // Windows indexers / antivirus can briefly hold a newly written file.
+      // Retry the same atomic replacement without clearing or truncating history.
+      for (let attempt = 0; ; attempt++) {
+        try { await rename(temp, this.file); break; }
+        catch (error) {
+          if (!['EPERM', 'EBUSY', 'EACCES'].includes(error.code) || attempt >= 4) throw error;
+          await new Promise(resolve => setTimeout(resolve, 20 * 2 ** attempt));
+        }
+      }
+      this.state = next; return result;
     });
     this.queue = task.catch(() => {}); return task;
   }

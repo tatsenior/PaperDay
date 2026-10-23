@@ -24,6 +24,10 @@ export function queryUrl(settings, start = 0, now = new Date()) {
   const terms = settings.keywords.split(/[,，]/).map(x => x.trim().replace(/[^\p{L}\p{N}\s-]/gu, '').slice(0, 80)).filter(Boolean).slice(0, 5);
   let q = `(${settings.topics.map(t => `cat:${t}`).join(' OR ')}) AND submittedDate:[${stamp(from)}0000 TO ${stamp(now)}2359]`;
   if (terms.length) q += ` AND (${terms.map(t => `(ti:"${t}" OR abs:"${t}")`).join(' OR ')})`;
+  for (const group of (settings.focusGroups || [])) {
+    const safe = group.filter(t => typeof t === 'string' && /^[A-Za-z0-9][A-Za-z0-9 -]{1,79}$/.test(t));
+    if (safe.length) q += ` AND (${safe.map(t => `(ti:"${t}" OR abs:"${t}")`).join(' OR ')})`;
+  }
   const u = new URL('https://export.arxiv.org/api/query');
   u.search = new URLSearchParams({ search_query: q, start: String(start), max_results: '100', sortBy: 'submittedDate', sortOrder: 'descending' });
   return u.toString();

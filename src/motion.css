@@ -1,0 +1,43 @@
+/* Short, quiet cross-fades for page/tab/step/theme switches. */
+::view-transition-old(root) { animation: view-out 120ms ease both; }
+::view-transition-new(root) { animation: view-in 180ms ease both; }
+@keyframes view-out { to { opacity: 0; } }
+@keyframes view-in { from { opacity: 0; } to { opacity: 1; } }
+.paper-body, .main-content, .setup-content { animation: panel-in 180ms ease-out; }
+@keyframes panel-in { from { opacity: .2; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar, .panel, .paper-card, .library-item, .topbar, .setup, .welcome,
+.topic-chip, .field-card, .theme-option, input, select, textarea {
+  transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.focus-panel { min-width: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); padding: 18px 20px; margin-bottom: 20px; }
+.focus-header { display: flex; align-items: center; gap: 12px; }
+.focus-header > svg { color: var(--accent); flex-shrink: 0; }
+.focus-header > div { flex: 1; min-width: 0; }
+.focus-header strong { font-size: .9375rem; font-weight: 550; overflow-wrap: anywhere; }
+.focus-header p { font-size: .8125rem; color: var(--muted); margin-top: 4px; line-height: 1.7; }
+.focus-header .secondary { flex-shrink: 0; font-size: .8125rem; min-height: 38px; padding: 8px 12px; }
+.focus-header .secondary svg { transition: transform 180ms ease; }
+.focus-header .rotated { transform: rotate(180deg); }
+.focus-editor { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); animation: panel-in 180ms ease-out; }
+.focus-editor label { display: block; color: var(--body); font-size: .875rem; margin-bottom: 10px; }
+.focus-editor textarea { display: block; resize: vertical; min-height: 96px; max-height: 240px; width: 100%; border-radius: 12px; border: 1px solid var(--line); padding: 12px 14px; color: var(--text); background: var(--bg); font: inherit; line-height: 1.7; }
+.focus-editor textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.focus-editor textarea::placeholder { color: var(--muted); }
+.focus-help { display: flex; align-items: start; justify-content: space-between; gap: 16px; color: var(--muted); font-size: .75rem; margin-top: 9px; }
+.focus-help > span:last-child { flex-shrink: 0; }
+.focus-search-terms { display: flex; align-items: start; gap: 8px; margin-top: 12px; color: var(--accent); font-size: .8125rem; overflow-wrap: anywhere; }
+.focus-search-terms svg { flex-shrink: 0; margin-top: 3px; }
+.focus-actions { display: flex; align-items: center; justify-content: flex-end; gap: 15px; flex-wrap: wrap; margin-top: 18px; }
+.focus-actions .text-button { color: var(--muted); }
+.focus-note { font-size: .75rem; line-height: 1.8; margin-top: 12px; color: var(--muted); }
+@media (max-width: 760px) {
+  .focus-header { flex-wrap: wrap; }
+  .focus-header > div { flex-basis: 75%; }
+  .focus-header .secondary { margin-left: 30px; }
+  .focus-help { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, ::view-transition-old(root), ::view-transition-new(root) {
+    animation: none !important; transition: none !important;
+  }
+}

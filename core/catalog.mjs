@@ -26,4 +26,8 @@ export function validateSettings(input, previous = defaultSettings) {
   return s;
 }
 export function localDay(date = new Date()) { return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`; }
-export function profileKey(settings) { return JSON.stringify([settings.field, [...settings.topics].sort(), settings.days, settings.keywords]); }
+export function profileKey(settings, focus = null) {
+  const parts = [settings.field, [...settings.topics].sort(), settings.days, settings.keywords];
+  if (focus) parts.push(focus.groups);
+  return JSON.stringify(parts);
+}

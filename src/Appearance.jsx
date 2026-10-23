@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Check, ImagePlus, Palette, Type, X } from 'lucide-react';
+import { animateChange } from './transitions.js';
 
 const AppearanceContext = createContext(null);
 const storageKey = 'paperday.appearance.v1';
@@ -22,7 +23,7 @@ export function AppearanceProvider({ children }) {
   const [error, setError] = useState('');
   function update(patch) {
     const next = { ...appearance, ...patch };
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); setAppearance(next); setError(''); }
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); animateChange(() => setAppearance(next)); setError(''); }
     catch { setError('外观设置无法保存，可能是本地存储空间不足。请尝试更小的背景图片。'); }
   }
   useEffect(() => {

@@ -3,5 +3,6 @@ const invoke = async (method, ...args) => { const r = await ipcRenderer.invoke(`
 contextBridge.exposeInMainWorld('paperday', Object.freeze({
   state: () => invoke('state'), saveSettings: input => invoke('settings', input), recommend: extra => invoke('recommend', extra),
   summarize: id => invoke('summary', id), update: (id, patch) => invoke('update', id, patch),
+  setFocus: description => invoke('focus', description),
   open: (id, kind) => invoke('open', id, kind), export: id => invoke('export', id), folder: () => invoke('folder')
 }));

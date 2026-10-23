@@ -1,12 +1,13 @@
 import { validateSettings, localDay, profileKey } from './catalog.mjs';
 import { canonicalId } from './papers.mjs';
 import { generateSummary } from './ai.mjs';
+import { interpretFocus, validateFocus } from './focus.mjs';
 export class PaperService {
-  constructor(store, source, secrets, clock = () => new Date(), ai = generateSummary) { this.store = store; this.source = source; this.secrets = secrets; this.clock = clock; this.ai = ai; this.queue = Promise.resolve(); this.summarizing = new Map(); }
+  constructor(store, source, secrets, clock = () => new Date(), ai = generateSummary, focusAI = interpretFocus) { this.store = store; this.source = source; this.secrets = secrets; this.clock = clock; this.ai = ai; this.focusAI = focusAI; this.queue = Promise.resolve(); this.summarizing = new Map(); }
   exclusive(fn) { const task = this.queue.then(fn); this.queue = task.catch(() => {}); return task; }
   snapshot() {
     const s = this.store.state;
-    return { settings: { ...s.settings, hasKey: !!s.encryptedKey }, papers: s.papers, history: s.history, summaries: s.summaries, daily: s.daily, today: localDay(this.clock()) };
+    return { settings: { ...s.settings, hasKey: !!s.encryptedKey }, focus: s.focus || null, papers: s.papers, history: s.history, summaries: s.summaries, daily: s.daily, today: localDay(this.clock()) };
   }
   async saveSettings(input) { return this.exclusive(async () => {
     const settings = validateSettings(input, this.store.state.settings);
@@ -19,10 +20,21 @@ export class PaperService {
     await this.store.update(s => { s.settings = settings; s.encryptedKey = encrypted; });
     return this.snapshot();
   }); }
+  async setFocus(description) { return this.exclusive(async () => {
+    if (typeof description !== 'string' || description.length > 500) throw new Error('请用 500 字以内的一句话或关键词描述主题。');
+    const prompt = description.trim(), s = this.store.state;
+    if (!prompt) { await this.store.update(next => { next.focus = null; }); return this.snapshot(); }
+    if (s.focus?.prompt === prompt) return this.snapshot();
+    if (!s.settings.baseUrl || !s.settings.model) throw new Error('请先在偏好设置中配置模型 API，再使用自然语言主题。');
+    const key = s.encryptedKey ? await this.secrets.decrypt(s.encryptedKey) : '';
+    const plan = validateFocus(await this.focusAI(prompt, s.settings, key));
+    await this.store.update(next => { next.focus = { ...plan, prompt, model: s.settings.model, updatedAt: this.clock().toISOString() }; });
+    return this.snapshot();
+  }); }
   async recommend(extra = false) { return this.exclusive(async () => {
-    const s = this.store.state; const settings = s.settings;
+    const s = this.store.state; const settings = { ...s.settings, focusGroups: s.focus?.groups || [] };
     if (!settings.onboarded) throw new Error('请先选择感兴趣的论文方向。');
-    const now = this.clock(), day = localDay(now), profile = profileKey(settings), dailyKey = `${day}:${profile}`;
+    const now = this.clock(), day = localDay(now), profile = profileKey(settings, s.focus), dailyKey = `${day}:${profile}`;
     if (!extra && s.daily[dailyKey] && s.papers[s.daily[dailyKey]]) return { paper: s.papers[s.daily[dailyKey]], cached: true, offline: false, state: this.snapshot() };
     const seen = new Set(s.history.map(h => h.id));
     const inRange = p => p.categories.some(c => settings.topics.includes(c)) && Date.parse(p.published) >= now.getTime() - settings.days * 86400000 && Date.parse(p.published) <= now.getTime();
@@ -43,7 +55,7 @@ export class PaperService {
         await this.store.update(next => { next.cache[profile] = { at: now.toISOString(), papers: candidates }; });
       } catch (error) { paper = choose(); if (!paper) throw error; offline = true; }
     }
-    if (!paper) throw new Error('当前范围内没有找到未推荐的论文（已检查最新 1000 条）。可在设置中扩大时间范围、调整方向或减少关键词。');
+    if (!paper) throw new Error('当前范围内没有找到未推荐的论文（已检查最新 1000 条）。可扩大时间范围、调整方向、减少关键词，或简化推荐主题。');
     await this.store.update(next => {
       next.papers[paper.id] = paper;
       next.history.unshift({ id: paper.id, at: now.toISOString(), day, profile, kind: extra ? 'extra' : 'daily', favorite: false, read: false });
