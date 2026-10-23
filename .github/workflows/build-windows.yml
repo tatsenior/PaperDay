@@ -1,0 +1,75 @@
+name: Build Windows
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Ensure Electron runtime is installed
+        run: node node_modules/electron/install.js
+      - name: Build portable application
+        shell: pwsh
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $label = "v$version"
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $label = $env:GITHUB_REF_NAME
+            $tagVersion = $label.TrimStart('v')
+            if (($tagVersion -ne $version) -and ("$tagVersion.0" -ne $version)) {
+              throw "Tag $label does not match package.json version $version"
+            }
+          }
+          npm run package -- --publish never "--config.portable.artifactName=PaperDay-$label-Windows.exe"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $file = Get-Item "release/PaperDay-$label-Windows.exe"
+          $hash = (Get-FileHash -LiteralPath $file.FullName -Algorithm SHA256).Hash.ToLower()
+          "$hash  $($file.Name)" | Set-Content release/SHA256SUMS.txt -Encoding ascii
+      - name: Upload build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: PaperDay-Windows
+          path: |
+            release/PaperDay-*-Windows.exe
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: PaperDay-Windows
+          path: release
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release/*
+          else
+            gh release create "$RELEASE_TAG" release/* --verify-tag --title "PaperDay $RELEASE_TAG" --generate-notes
+          fi

@@ -94,6 +94,12 @@ npm run package
 
 产物位于 `release/`。界面使用 React，桌面运行时使用 Electron；`core/` 包含推荐、论文检索、本地存储和模型接口逻辑。仓库仅保留应用源码和构建必需文件，便携程序通过 Releases 分发。
 
+## 在 GitHub 上构建
+
+进入仓库的 **Actions → Build Windows → Run workflow**，选择 `main` 后运行。构建完成后，在该次运行页面的 **Artifacts** 下载 `PaperDay-Windows`，其中包含 Windows 程序和 SHA256 校验文件，保留 30 天。
+
+后续发布新版时，先修改 `package.json` 和 `package-lock.json` 的版本号并提交，再创建、推送匹配的 `v*` 标签（例如包版本 `0.2.0` 对应 `v0.2` 或 `v0.2.0`）。GitHub 会自动构建并创建 Release，长期保存下载附件。构建失败时不会创建新的发布页。无需自行配置模型 API Key 或额外的 GitHub 密钥。
+
 ## 版本
 
 **v0.1** 为首个公开版本，包含兴趣选择、每日推荐、去重、中文解读、历史、收藏和笔记导出。Git 提交与 `v0.1` 标签对应，可准确定位并恢复该版本。
