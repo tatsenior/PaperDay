@@ -1,0 +1,93 @@
+/* Viewport ownership: only the reading pane scrolls, never the app frame. */
+html, body, #root { width: 100%; min-width: 0; height: 100%; margin: 0; }
+body { overflow: hidden; }
+.app-shell { height: 100dvh; min-height: 0; overflow: hidden; }
+.main-area { height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-gutter: stable; }
+.main-content, .settings-view, .reading-layout, .library-toolbar { width: 100%; min-width: 0; }
+.library-list { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.library-item { min-width: 0; max-width: 100%; overflow: hidden; }
+.library-item > div { min-width: 0; overflow: hidden; }
+.library-item > svg, .library-icon { flex-shrink: 0; }
+.library-item h3 {
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.library-item p { min-width: 0; max-width: 100%; }
+.library-meta { overflow-wrap: anywhere; }
+.search-box { max-width: 100%; min-width: 0; }
+.search-box input { min-width: 0; }
+.panel, .paper-card, .paper-body, .form-row > *, .appearance-row > *, .limitation > div { min-width: 0; }
+.paper-meta, .form-hint, .note, .error-box { overflow-wrap: anywhere; }
+/* If future content needs horizontal scrolling, it must opt in locally. */
+.card-scroll { min-width: 0; max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+
+/* Fit both onboarding steps to available height rather than a fixed min-height. */
+.onboarding { height: 100dvh; min-height: 0; grid-template-columns: minmax(0, 35fr) minmax(0, 65fr); }
+.welcome, .setup { min-width: 0; min-height: 0; }
+.welcome { padding: clamp(18px, 3vh, 36px); }
+.welcome-copy { padding: clamp(12px, 4vh, 45px) 0; }
+.welcome-copy h1 { font-size: clamp(1.8rem, 4.3vh, 3.4rem); }
+.welcome footer { padding-top: 12px; flex-wrap: wrap; }
+.setup {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: clamp(8px, 1.5vh, 20px);
+  padding: clamp(14px, 2.5vh, 30px) clamp(24px, 4vw, 80px);
+  min-height: 0;
+}
+.setup-content { min-width: 0; padding: 0; margin: auto; }
+.setup-content h2 { margin: 12px 0; }
+.setup-bottom { margin: 0; }
+.onboarding .field-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.onboarding .model-fields .form-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.onboarding .model-fields label { gap: 6px; }
+.onboarding .model-fields label > span { font-size: .75rem; }
+.onboarding .form-row label { justify-content: end; }
+.onboarding .assistant-preview { margin-bottom: 20px; padding: 16px; }
+.onboarding .setup-actions { margin-top: 20px; }
+.onboarding .skip { margin-top: 12px; }
+.onboarding .note { margin-top: 12px; }
+.onboarding .error-box { margin: 10px 0; padding: 8px 12px; }
+
+@media (max-height: 850px) {
+  .onboarding { grid-template-columns: minmax(0, 30fr) minmax(0, 70fr); }
+  .onboarding .setup-content > .eyebrow { display: none; }
+  .onboarding .setup-content h2 { font-size: 1.5rem; margin: 0 0 8px; }
+  .onboarding .subtitle { font-size: .875rem; line-height: 1.6; margin-bottom: 16px; }
+  .onboarding .field-card { padding: 12px; }
+  .onboarding .field-card strong { margin: 7px 0 0; font-size: .9375rem; }
+  .onboarding .field-card small { display: none; }
+  .onboarding .section-label { margin: 16px 0 10px; }
+  .onboarding .topic-grid { gap: 7px; }
+  .onboarding .topic-chip { min-height: 32px; font-size: .8125rem; padding: 5px 10px; }
+  .onboarding .assistant-preview { padding: 12px 16px; margin-bottom: 16px; }
+  .onboarding .assistant-preview p { margin-top: 4px; }
+  .onboarding .model-fields > .form-row { margin-top: 14px; }
+  .onboarding .form-hint { margin-top: 12px; line-height: 1.6; }
+  .onboarding .setup-actions { margin-top: 14px; }
+  .onboarding .note { margin-top: 10px; }
+  .onboarding .setup-bottom { font-size: .6875rem; }
+}
+@media (max-height: 700px) {
+  .onboarding .setup { padding-block: 12px; gap: 8px; }
+  .onboarding .field-card { padding: 9px 12px; }
+  .onboarding .field-card > svg:not(.selected-check) { width: 18px; height: 18px; }
+  .onboarding .assistant-preview { display: none; }
+  .onboarding .setup-content h2 { font-size: 1.35rem; }
+  .onboarding .subtitle { margin-bottom: 10px; }
+  .onboarding .model-fields input { padding-block: 8px; min-height: 40px; }
+  .onboarding .welcome-copy > .eyebrow { display: none; }
+  .onboarding .welcome-copy p { margin-top: 16px; }
+}
+@media (max-width: 760px) {
+  .onboarding { display: block; }
+  .onboarding .welcome { display: none; }
+  .onboarding .setup { height: 100%; }
+}
+/* Preserve access on unusually short windows / extreme OS text scaling. */
+@media (max-height: 540px) {
+  .onboarding .setup-content { max-height: 100%; overflow-y: auto; overflow-x: hidden; padding: 4px; }
+}
