@@ -1,0 +1,14 @@
+node_modules/
+dist/
+release/
+.local/
+tests/
+coverage/
+src/demo.js
+scripts/make-icon.py
+*.log
+*.tmp
+*.bak
+.env*
+.DS_Store
+Thumbs.db

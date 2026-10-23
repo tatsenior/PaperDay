@@ -1,0 +1,55 @@
+{
+  "name": "paperday",
+  "productName": "PaperDay",
+  "version": "0.1.0",
+  "description": "见微 · 每天一篇，发现新的可能",
+  "author": "PaperDay",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "vite build",
+    "start": "npm run build && electron .",
+    "package": "npm run build && electron-builder --win portable --x64"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.3.0",
+    "lucide-react": "^0.468.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^45.0.0",
+    "electron-builder": "^26.0.12",
+    "vite": "^7.1.0"
+  },
+  "build": {
+    "appId": "com.paperday.desktop",
+    "productName": "PaperDay",
+    "directories": {
+      "output": "release"
+    },
+    "electronDist": "node_modules/electron/dist",
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "core/**/*",
+      "assets/icon.ico",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "PaperDay-v0.1-Windows.exe"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tatsenior/PaperDay.git"
+  }
+}
