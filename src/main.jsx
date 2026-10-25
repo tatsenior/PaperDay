@@ -6,4 +6,4 @@ import './styles.css';
 import './layout.css';
 import './motion.css';
 import './extras.css';
-createRoot(document.getElementById('root')).render(<AppearanceProvider><App/></AppearanceProvider>);
+createRoot(document.getElementById('root')).render(<AppearanceProvider><header className="window-titlebar"><span>见微 <b>PaperDay</b></span><small>每天一篇 · 让好奇发生</small></header><div className="window-content"><App/></div></AppearanceProvider>);

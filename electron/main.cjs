@@ -33,6 +33,10 @@ else {
       if (event.sender !== win?.webContents || event.senderFrame !== win.webContents.mainFrame || event.senderFrame.url.split('?')[0].split('#')[0] !== rendererUrl) throw new Error('请求来源无效。');
       try { return { ok: true, value: await fn(...args) }; } catch (error) { return { ok: false, error: error.message || '操作失败，请重试。' }; }
     });
+    handle('titlebar', (color, symbolColor) => {
+      if (![color, symbolColor].every(value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value))) throw new Error('标题栏颜色无效。');
+      win.setTitleBarOverlay({color, symbolColor, height:40});
+    });
     handle('state', () => service.snapshot());
     handle('settings', input => service.saveSettings(input));
     handle('recommend', extra => service.recommend(extra === true));
@@ -50,7 +54,7 @@ else {
       if (!result.canceled && result.filePath) { await writeFile(result.filePath, markdown, 'utf8'); return true; } return false;
     });
     Menu.setApplicationMenu(null);
-    win = new BrowserWindow({ width: 1400, height: 940, minWidth: 960, minHeight: 680, backgroundColor: '#191f1e', title: '见微 PaperDay', icon: path.join(__dirname, '../assets/icon.ico'), show: false, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
+    win = new BrowserWindow({ width: 1400, height: 940, minWidth: 960, minHeight: 680, titleBarStyle: 'hidden', titleBarOverlay: {color:'#191f1e',symbolColor:'#edf4ef',height:40}, backgroundColor: '#191f1e', title: '见微 PaperDay', icon: path.join(__dirname, '../assets/icon.ico'), show: false, webPreferences: { preload: path.join(__dirname, 'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true } });
     win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
     win.webContents.on('will-navigate', (e, url) => { if (url !== rendererUrl) e.preventDefault(); });
     win.webContents.session.setPermissionRequestHandler((_wc, _permission, callback) => callback(false));
