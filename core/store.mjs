@@ -1,7 +1,7 @@
 import { mkdir, readFile, writeFile, rename, copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { defaultSettings } from './catalog.mjs';
-export const emptyState = () => ({ version: 1, settings: { ...defaultSettings, topics: [...defaultSettings.topics] }, focus: null, encryptedKey: '', papers: {}, history: [], daily: {}, summaries: {}, cache: {} });
+export const emptyState = () => ({ version: 1, settings: { ...defaultSettings, topics: [...defaultSettings.topics] }, focus: null, encryptedKey: '', papers: {}, history: [], daily: {}, summaries: {}, conversations: {}, cache: {} });
 export class Store {
   constructor(directory) { this.directory = directory; this.file = join(directory, 'library.json'); this.state = emptyState(); this.queue = Promise.resolve(); }
   async open() {

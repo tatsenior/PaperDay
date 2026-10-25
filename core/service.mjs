@@ -2,12 +2,14 @@ import { validateSettings, localDay, profileKey } from './catalog.mjs';
 import { canonicalId } from './papers.mjs';
 import { generateSummary } from './ai.mjs';
 import { interpretFocus, validateFocus } from './focus.mjs';
+import { answerPaperQuestion } from './chat.mjs';
+import { randomUUID } from 'node:crypto';
 export class PaperService {
-  constructor(store, source, secrets, clock = () => new Date(), ai = generateSummary, focusAI = interpretFocus) { this.store = store; this.source = source; this.secrets = secrets; this.clock = clock; this.ai = ai; this.focusAI = focusAI; this.queue = Promise.resolve(); this.summarizing = new Map(); }
+  constructor(store, source, secrets, clock = () => new Date(), ai = generateSummary, focusAI = interpretFocus, chatAI = answerPaperQuestion) { this.store = store; this.source = source; this.secrets = secrets; this.clock = clock; this.ai = ai; this.focusAI = focusAI; this.chatAI = chatAI; this.asking = new Set(); this.queue = Promise.resolve(); this.summarizing = new Map(); }
   exclusive(fn) { const task = this.queue.then(fn); this.queue = task.catch(() => {}); return task; }
   snapshot() {
     const s = this.store.state;
-    return { settings: { ...s.settings, hasKey: !!s.encryptedKey }, focus: s.focus || null, papers: s.papers, history: s.history, summaries: s.summaries, daily: s.daily, today: localDay(this.clock()) };
+    return { settings: { ...s.settings, hasKey: !!s.encryptedKey }, focus: s.focus || null, papers: s.papers, history: s.history, summaries: s.summaries, conversations: s.conversations || {}, daily: s.daily, today: localDay(this.clock()) };
   }
   async saveSettings(input) { return this.exclusive(async () => {
     const settings = validateSettings(input, this.store.state.settings);
@@ -76,6 +78,23 @@ export class PaperService {
     })();
     this.summarizing.set(id, task);
     try { return await task; } finally { this.summarizing.delete(id); }
+  }
+  async askPaper(rawId, input) {
+    const id=canonicalId(rawId);
+    if(typeof input!=='string' || !input.trim() || input.length>2000)throw new Error('请输入 1–2000 字的论文问题。');
+    const question=input.trim(), s=this.store.state, paper=s.papers[id];
+    if(!paper)throw new Error('请先获取这篇论文。');
+    if(!s.settings.baseUrl || !s.settings.model)throw new Error('请先在偏好设置中配置模型 API。');
+    if(this.asking.has(id))throw new Error('这篇论文的回答仍在生成，请稍候。');
+    this.asking.add(id);
+    try {
+      const key=s.encryptedKey?await this.secrets.decrypt(s.encryptedKey):'';
+      const answer=await this.chatAI(paper,question,s.conversations?.[id] || [],s.settings,key);
+      if(typeof answer!=='string' || !answer.trim() || answer.length>12000)throw new Error('模型没有返回有效回答，请重试。');
+      const turn={id:randomUUID(),question,answer:answer.trim(),model:s.settings.model,at:this.clock().toISOString(),basis:'abstract'};
+      await this.store.update(next=>{next.conversations ||= {};next.conversations[id]=[...(next.conversations[id] || []),turn].slice(-30);});
+      return this.store.state.conversations[id];
+    } finally {this.asking.delete(id);}
   }
   async updatePaper(rawId, patch) {
     const id = canonicalId(rawId);

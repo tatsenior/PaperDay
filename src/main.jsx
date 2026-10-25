@@ -5,4 +5,5 @@ import { AppearanceProvider } from './Appearance.jsx';
 import './styles.css';
 import './layout.css';
 import './motion.css';
+import './extras.css';
 createRoot(document.getElementById('root')).render(<AppearanceProvider><App/></AppearanceProvider>);
