@@ -79,7 +79,7 @@ export class PaperService {
         await this.store.update(next => { next.cache[profile] = { at: now.toISOString(), papers: candidates }; });
       } catch (error) { if(screening)throw error;paper = choose(); if (!paper) throw error; offline = true; }
     }
-    if (!paper && screening)throw new Error('本次检查的候选中未找到有充分依据符合全部要求的论文（最多45篇、3次模型调用）。未将候选记为已推荐；可简化要求、扩大时间范围或取消筛选。会议信息缺失时不会猜测录用状态。');
+    if (!paper && screening)throw new Error('本次检查的候选中未找到有充分依据符合全部要求的论文（最多45篇、3批筛选（异常时最多6次调用））。未将候选记为已推荐；可简化要求、扩大时间范围或取消筛选。会议信息缺失时不会猜测录用状态。');
     if (!paper) throw new Error('当前范围内没有找到未推荐的论文（已检查最新 1000 条）。可扩大时间范围、调整方向、减少关键词，或简化推荐主题。');
     await this.store.update(next => {
       next.papers[paper.id] = paper;
