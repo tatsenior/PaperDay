@@ -4,7 +4,7 @@
 
 选择你感兴趣的研究方向，每天首次打开时，遇见一篇尚未推荐过的近期论文。搭配中文概述、创新点与研究方法，帮助你快速判断是否值得深入阅读。
 
-[下载 Windows 版 v1.0](https://github.com/tatsenior/PaperDay/releases/tag/v1.0) · [反馈问题](https://github.com/tatsenior/PaperDay/issues)
+[下载 Windows 版 v1.1](https://github.com/tatsenior/PaperDay/releases/tag/v1.1) · [反馈问题](https://github.com/tatsenior/PaperDay/issues)
 
 ## 功能
 
@@ -19,7 +19,7 @@
 
 ## 下载与开始使用
 
-1. 前往 [v1.0 发布页](https://github.com/tatsenior/PaperDay/releases/tag/v1.0)，下载 **PaperDay-v1.0-Windows.exe**。
+1. 前往 [v1.1 发布页](https://github.com/tatsenior/PaperDay/releases/tag/v1.1)，下载 **PaperDay-v1.1-Windows.exe**。
 2. 双击运行，无需安装 Node.js。首次运行便携包需要短暂解压，请稍候。
 3. 选择研究领域和二级方向。
 4. 填写自己的模型 API 地址、模型名称及 API Key，开启中文解读；也可选择“稍后配置”，先浏览论文原文。
@@ -140,9 +140,11 @@ npm run package
 
 进入仓库的 **Actions → Build Windows → Run workflow**，选择 `main` 后运行。构建完成后，在该次运行页面的 **Artifacts** 下载 `PaperDay-Windows`，其中包含 Windows 程序和 SHA256 校验文件，保留 30 天。
 
-后续发布新版时，先修改 `package.json` 和 `package-lock.json` 的版本号并提交，再创建、推送匹配的 `v*` 标签（例如包版本 `1.1.0` 对应 `v1.1` 或 `v1.1.0`）。GitHub 会自动构建并创建 Release，长期保存下载附件。构建失败时不会创建新的发布页。无需自行配置模型 API Key 或额外的 GitHub 密钥。
+后续发布新版时，先修改 `package.json` 和 `package-lock.json` 的版本号，更新界面版本标识及 `RELEASE_NOTES.md`（简要列出主要改动）并提交，再创建、推送匹配的 `v*` 标签（例如包版本 `1.1.0` 对应 `v1.1` 或 `v1.1.0`）。GitHub 会自动构建并创建 Release，长期保存下载附件。构建失败时不会创建新的发布页。无需自行配置模型 API Key 或额外的 GitHub 密钥。
 
 ## 版本
+
+**v1.1**：新增开机自启动选项；统一圆角选择框；历史论文支持时间、阅读状态筛选及直接标记已读。
 
 **v1.0（首个正式版）** 包含兴趣选择、每日去重推荐、持久化自然语言主题、中文解读、当前论文问答、历史与收藏、笔记导出，以及主题、字号、自定义背景和标题栏等外观功能。Windows 便携包由 GitHub Actions 构建，随附 SHA256 校验文件。`v1.0` 标签记录正式版源码，便于定位和回滚。
 

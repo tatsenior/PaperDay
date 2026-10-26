@@ -58,6 +58,7 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: PaperDay-Windows
@@ -70,6 +71,7 @@ jobs:
         run: |
           if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" release/*
+            gh release edit "$RELEASE_TAG" --title "见微 PaperDay $RELEASE_TAG" --notes-file RELEASE_NOTES.md
           else
-            gh release create "$RELEASE_TAG" release/* --verify-tag --title "PaperDay $RELEASE_TAG" --generate-notes
+            gh release create "$RELEASE_TAG" release/* --verify-tag --title "见微 PaperDay $RELEASE_TAG" --notes-file RELEASE_NOTES.md
           fi

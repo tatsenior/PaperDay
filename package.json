@@ -1,7 +1,7 @@
 {
   "name": "paperday",
   "productName": "PaperDay",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "见微 · 每天一篇，发现新的可能",
   "author": "PaperDay",
   "private": true,
@@ -45,7 +45,7 @@
       "signAndEditExecutable": false
     },
     "portable": {
-      "artifactName": "PaperDay-v1.0-Windows.exe"
+      "artifactName": "PaperDay-v1.1-Windows.exe"
     }
   },
   "repository": {
