@@ -1,11 +1,7 @@
 /* Short, quiet cross-fades for page/tab/step/theme switches. */
-::view-transition-old(root) { animation: view-out 120ms ease both; }
-::view-transition-new(root) { animation: view-in 180ms ease both; }
-@keyframes view-out { to { opacity: 0; } }
-@keyframes view-in { from { opacity: 0; } to { opacity: 1; } }
 .paper-body, .main-content, .setup-content { animation: panel-in 180ms ease-out; }
 @keyframes panel-in { from { opacity: .2; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-.sidebar, .panel, .paper-card, .library-item, .topbar, .setup, .welcome,
+.panel, .paper-card, .library-item, .setup,
 .topic-chip, .field-card, .theme-option, input, select, textarea {
   transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }

@@ -1,5 +1,6 @@
 import { XMLParser, XMLValidator } from 'fast-xml-parser';
 const list = x => x ? (Array.isArray(x) ? x : [x]) : [];
+const nodeText = x => typeof x==='object' && x!==null ? x['#text'] || '' : x;
 const clean = x => String(x || '').replace(/\s+/g, ' ').trim();
 export function canonicalId(value) {
   const id = String(value).replace(/^https?:\/\/arxiv.org\/(abs|pdf)\//, '').replace(/\.pdf$/, '').replace(/v\d+$/, '');
@@ -14,7 +15,7 @@ export function parseFeed(xml) {
     if (String(entry.id).includes('/api/errors')) throw new Error('论文检索请求未被 arXiv 接受。');
     let id; try { id = canonicalId(entry.id); } catch { return []; }
     if (!entry.title || !entry.summary || !Number.isFinite(Date.parse(entry.published))) return [];
-    return [{ id, title: clean(entry.title), abstract: clean(entry.summary), authors: list(entry.author).map(a => clean(a.name)), published: entry.published, updated: entry.updated || entry.published, categories: list(entry.category).map(c => c['@_term']).filter(Boolean), url: `https://arxiv.org/abs/${id}`, pdfUrl: `https://arxiv.org/pdf/${id}` }];
+    return [{ id, title: clean(entry.title), abstract: clean(entry.summary), authors: list(entry.author).map(a => clean(a.name)), published: entry.published, updated: entry.updated || entry.published, comments:clean(nodeText(entry['arxiv:comment'])), journalRef:clean(nodeText(entry['arxiv:journal_ref'])), categories: list(entry.category).map(c => c['@_term']).filter(Boolean), url: `https://arxiv.org/abs/${id}`, pdfUrl: `https://arxiv.org/pdf/${id}` }];
   });
   return { papers, total: Number(parsed.feed['opensearch:totalResults']) || papers.length };
 }

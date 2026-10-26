@@ -115,3 +115,16 @@ input[type="checkbox"]:checked::after { content:""; width:9px;height:5px;border-
 .history-mark { flex-shrink:0;font-size:.8125rem; }
 .history-mark.marked { color:var(--muted); }
 @media(max-width:1000px){.history-item{flex-wrap:wrap}.history-mark{margin-left:auto}.history-filters .search-box{margin-left:0}.history-open{flex-basis:100%}}
+
+/* Reserve a helper-text row so both inputs share a baseline. */
+.form-row { align-items:end; }
+.form-row label { display:grid;grid-template-rows:auto 1.5em auto;gap:8px;align-content:end; }
+.form-row label>span { grid-row:2;line-height:1.5; }
+.form-row label>:is(input,select) { grid-row:3;min-height:46px; }
+.onboarding .form-row label { display:grid; }
+.screening-toggle { display:flex;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer;color:var(--body);font-size:.875rem; }
+.screening-toggle svg { color:var(--accent); }
+.screening-toggle strong { font-weight:550; }
+.screening-toggle>span { margin-left:auto;color:var(--muted);font-size:.75rem; }
+.screening-note { margin-top:10px;color:var(--muted);font-size:.75rem;line-height:1.8; }
+.screening-result { margin:18px 28px 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;color:var(--accent);background:var(--soft);font-size:.8125rem;overflow-wrap:anywhere; }

@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('paperday', Object.freeze({
   startup: () => invoke('startup'), setStartup: enabled => invoke('set-startup',enabled),
   state: () => invoke('state'), saveSettings: input => invoke('settings', input), recommend: extra => invoke('recommend', extra),
   summarize: id => invoke('summary', id), update: (id, patch) => invoke('update', id, patch),
+  setScreening: input=>invoke('screening',input),
   setFocus: description => invoke('focus', description),
   askPaper: (id, question) => invoke('ask', id, question),
   open: (id, kind) => invoke('open', id, kind), export: id => invoke('export', id), folder: () => invoke('folder')

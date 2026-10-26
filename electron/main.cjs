@@ -18,8 +18,8 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
   app.whenReady().then(async () => {
-    const [{ Store }, { ArxivSource, canonicalId }, { PaperService }, { generateSummary }, { interpretFocus }, { answerPaperQuestion }] = await Promise.all([
-      import('../core/store.mjs'), import('../core/papers.mjs'), import('../core/service.mjs'), import('../core/ai.mjs'), import('../core/focus.mjs'), import('../core/chat.mjs')
+    const [{ Store }, { ArxivSource, canonicalId }, { PaperService }, { generateSummary }, { interpretFocus }, { answerPaperQuestion }, {screenPapers}] = await Promise.all([
+      import('../core/store.mjs'), import('../core/papers.mjs'), import('../core/service.mjs'), import('../core/ai.mjs'), import('../core/focus.mjs'), import('../core/chat.mjs'), import('../core/screening.mjs')
     ]);
     const directory = !app.isPackaged && process.env.PAPERDAY_DATA_DIR ? path.resolve(process.env.PAPERDAY_DATA_DIR) : app.getPath('userData');
     const store = await new Store(directory).open();
@@ -29,7 +29,7 @@ else {
     };
     // Electron net follows the operating system's proxy settings.
     const fetcher = (url, options) => net.fetch(url, options);
-    service = new PaperService(store, new ArxivSource(fetcher), secrets, () => new Date(), (paper, settings, key) => generateSummary(paper, settings, key, fetcher), (prompt, settings, key) => interpretFocus(prompt, settings, key, fetcher), (paper, question, turns, settings, key) => answerPaperQuestion(paper, question, turns, settings, key, fetcher));
+    service = new PaperService(store, new ArxivSource(fetcher), secrets, () => new Date(), (paper, settings, key) => generateSummary(paper, settings, key, fetcher), (prompt, settings, key) => interpretFocus(prompt, settings, key, fetcher), (paper, question, turns, settings, key) => answerPaperQuestion(paper, question, turns, settings, key, fetcher), (papers,prompt,settings,key)=>screenPapers(papers,prompt,settings,key,fetcher));
     const handle = (name, fn) => ipcMain.handle(`paperday:${name}`, async (event, ...args) => {
       if (event.sender !== win?.webContents || event.senderFrame !== win.webContents.mainFrame || event.senderFrame.url.split('?')[0].split('#')[0] !== rendererUrl) throw new Error('请求来源无效。');
       try { return { ok: true, value: await fn(...args) }; } catch (error) { return { ok: false, error: error.message || '操作失败，请重试。' }; }
@@ -44,6 +44,7 @@ else {
     handle('state', () => service.snapshot());
     handle('settings', input => service.saveSettings(input));
     handle('recommend', extra => service.recommend(extra === true));
+    handle('screening', input=>service.setScreening(input));
     handle('focus', description => service.setFocus(description));
     handle('ask', (id, question) => service.askPaper(id, question));
     handle('summary', id => service.summarize(id));
