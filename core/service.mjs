@@ -100,7 +100,12 @@ export class PaperService {
     const id = canonicalId(rawId);
     await this.store.update(s => {
       const item = s.history.find(h => h.id === id); if (!item) throw new Error('未找到阅读记录。');
-      for (const key of ['read', 'favorite']) if (typeof patch[key] === 'boolean') item[key] = patch[key];
+      if(typeof patch.read==='boolean'){
+        if(patch.read && !item.read)item.readAt=this.clock().toISOString();
+        if(!patch.read)delete item.readAt;
+        item.read=patch.read;
+      }
+      if(typeof patch.favorite==='boolean')item.favorite=patch.favorite;
     }); return this.snapshot();
   }
 }

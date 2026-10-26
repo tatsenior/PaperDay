@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, safeStorage, shell, dialog, net, Menu } = require('electron');
 const path = require('node:path');
+const { startupController } = require('./startup.cjs');
 const { pathToFileURL } = require('node:url');
 const { writeFile } = require('node:fs/promises');
 const { mkdirSync } = require('node:fs');
@@ -37,6 +38,9 @@ else {
       if (![color, symbolColor].every(value => typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value))) throw new Error('标题栏颜色无效。');
       win.setTitleBarOverlay({color, symbolColor, height:40});
     });
+    const startup=startupController(app);
+    handle('startup', () => startup.get());
+    handle('set-startup', enabled => startup.set(enabled));
     handle('state', () => service.snapshot());
     handle('settings', input => service.saveSettings(input));
     handle('recommend', extra => service.recommend(extra === true));
