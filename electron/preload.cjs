@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('paperday', Object.freeze({
   setScreening: input=>invoke('screening',input),
   setFocus: description => invoke('focus', description),
   askPaper: (id, question) => invoke('ask', id, question),
+  zoteroTarget: id=>invoke('zotero-target',id), zoteroSave: (id,options,target)=>invoke('zotero-save',id,options,target), zoteroRIS: (id,options)=>invoke('zotero-ris',id,options),
   open: (id, kind) => invoke('open', id, kind), export: id => invoke('export', id), folder: () => invoke('folder')
 }));

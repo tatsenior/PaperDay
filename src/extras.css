@@ -128,3 +128,15 @@ input[type="checkbox"]:checked::after { content:""; width:9px;height:5px;border-
 .screening-toggle>span { margin-left:auto;color:var(--muted);font-size:.75rem; }
 .screening-note { margin-top:10px;color:var(--muted);font-size:.75rem;line-height:1.8; }
 .screening-result { margin:18px 28px 0;padding:12px 14px;border:1px solid var(--line);border-radius:12px;color:var(--accent);background:var(--soft);font-size:.8125rem;overflow-wrap:anywhere; }
+
+.zotero-dialog { width:min(600px,94vw);max-height:90dvh;overflow:auto;margin:auto;padding:26px;border:1px solid var(--line);border-radius:22px;background:var(--surface);color:var(--text);box-shadow:0 20px 80px #0006; }
+.zotero-dialog::backdrop { background:#0009;backdrop-filter:blur(5px); }
+.zotero-dialog .crop-heading>div { min-width:0; }
+.zotero-dialog .crop-heading p { overflow-wrap:anywhere; }
+.zotero-target { background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:18px; }
+.zotero-target>span { color:var(--muted);font-size:.75rem; }
+.zotero-target strong { display:block;margin-top:8px;overflow-wrap:anywhere;font-size:.9375rem; }
+.zotero-target p { display:flex;align-items:center;gap:8px;font-size:.8125rem;line-height:1.8;color:var(--muted);margin:10px 0; }
+.zotero-target .secondary { margin-top:6px;font-size:.8125rem; }
+.zotero-footer { display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:24px; }
+.zotero-success { color:var(--accent);font-size:.875rem;margin-top:18px; }

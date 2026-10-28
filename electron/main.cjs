@@ -18,8 +18,8 @@ if (!app.requestSingleInstanceLock()) app.quit();
 else {
   app.on('second-instance', () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
   app.whenReady().then(async () => {
-    const [{ Store }, { ArxivSource, canonicalId }, { PaperService }, { generateSummary }, { interpretFocus }, { answerPaperQuestion }, {screenPapers}] = await Promise.all([
-      import('../core/store.mjs'), import('../core/papers.mjs'), import('../core/service.mjs'), import('../core/ai.mjs'), import('../core/focus.mjs'), import('../core/chat.mjs'), import('../core/screening.mjs')
+    const [{ Store }, { ArxivSource, canonicalId }, { PaperService }, { generateSummary }, { interpretFocus }, { answerPaperQuestion }, {screenPapers}, {ZoteroBridge,paperRIS}] = await Promise.all([
+      import('../core/store.mjs'), import('../core/papers.mjs'), import('../core/service.mjs'), import('../core/ai.mjs'), import('../core/focus.mjs'), import('../core/chat.mjs'), import('../core/screening.mjs'), import('../core/zotero.mjs')
     ]);
     const directory = !app.isPackaged && process.env.PAPERDAY_DATA_DIR ? path.resolve(process.env.PAPERDAY_DATA_DIR) : app.getPath('userData');
     const store = await new Store(directory).open();
@@ -51,6 +51,14 @@ else {
     handle('update', (id, patch) => service.updatePaper(id, patch));
     handle('open', async (id, kind) => { id = canonicalId(id); if (!store.state.papers[id]) throw new Error('论文不存在。'); await shell.openExternal(`https://arxiv.org/${kind === 'pdf' ? 'pdf' : 'abs'}/${id}`); });
     handle('folder', () => shell.openPath(directory));
+    const zotero=new ZoteroBridge(store,fetcher);
+    handle('zotero-target', id=>zotero.target(id));
+    handle('zotero-save', (id,options,target)=>zotero.save(id,options,target));
+    handle('zotero-ris',async(rawId,options)=>{
+      const paper=zotero.paper(rawId),result=await dialog.showSaveDialog(win,{title:'导出 Zotero 文献文件',defaultPath:`PaperDay-${paper.id.replaceAll('/','-')}.ris`,filters:[{name:'RIS 文献文件',extensions:['ris']}]});
+      if(result.canceled||!result.filePath)return false;
+      await writeFile(result.filePath,'\uFEFF'+paperRIS(paper,store.state.summaries[paper.id],options),'utf8');return true;
+    });
     handle('export', async rawId => {
       const id = canonicalId(rawId), p = store.state.papers[id], s = store.state.summaries[id];
       if (!p) throw new Error('论文不存在。');
