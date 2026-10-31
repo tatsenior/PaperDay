@@ -36,19 +36,27 @@ export class ZoteroBridge{
    targets.push({targetID:row.id,libraryID:library.id,collectionID:row.id[0]==='C'?Number(row.id.slice(1)):null,libraryName:library.name,collectionName:row.name,label:[library.name,...(row.id[0]==='C'?parents:[])].join(' / '),level,editable:true,filesEditable:row.filesEditable!==false,imported:this.store.state.zoteroImports?.[`${paper.id}:${library.id}`]||null});
   }
   if(!targets.some(r=>r.targetID===current.targetID))targets.push({...current,label:[current.libraryName,...(current.collectionID!==null?[current.collectionName]:[])].join(' / '),level:current.collectionID===null?0:1,imported:this.store.state.zoteroImports?.[`${paper.id}:${current.libraryID}`]||null});
-  return{...current,imported:this.store.state.zoteroImports?.[`${paper.id}:${t.libraryID}`]||null,targets};
+  return{...current,existingImport:Object.entries(this.store.state.zoteroImports||{}).find(([key])=>key.startsWith(paper.id+':'))?.[1]||null,imported:this.store.state.zoteroImports?.[`${paper.id}:${t.libraryID}`]||null,targets};
  }
  async save(rawId,options,expected){const paper=this.paper(rawId),id=paper.id;if(typeof options?.pdf!=='boolean'||typeof options?.notes!=='boolean')throw new Error('导入选项无效。');
   if(this.pending.has(id))throw new Error('这篇论文正在导入，请稍候。');this.pending.add(id);
   try{const current=await this.target(id);const target=expected?.targetID?current.targets.find(t=>t.targetID===expected.targetID):current;if(!target||!expected||target.libraryID!==expected.libraryID||target.collectionID!==expected.collectionID)throw new Error('Zotero 保存位置已变化或已删除，请刷新位置后再导入。');if(!current.editable)throw new Error('请先在 Zotero 中选中可写文库，再刷新位置。');if(!target.editable)throw new Error('当前 Zotero 保存位置不可写，请切换到可编辑文库。');
-   if(target.imported)return{alreadyImported:true,at:target.imported.at};
+   const prior=current.existingImport;
+   if(prior){
+    if(prior.libraryID===target.libraryID&&prior.collectionID===target.collectionID)return{alreadyImported:true,at:prior.at};
+    if(!prior.sessionID)throw new Error('此旧记录没有可用保存会话。为避免重复创建，请在 Zotero 中移动原条目；长期位置修改需要 Zotero 10 本地写入授权。');
+    try{await this.request('updateSession',{sessionID:prior.sessionID,target:target.targetID},true);}catch{throw new Error('Zotero 保存会话可能已失效，未重新创建条目。请在 Zotero 中核对并移动原条目。');}
+    const moved={...prior,libraryID:target.libraryID,collectionID:target.collectionID};
+    try{await this.store.update(s=>{delete s.zoteroImports[`${id}:${prior.libraryID}`];s.zoteroImports[`${id}:${target.libraryID}`]=moved;});}catch{return{warning:'位置修改已提交，但本地记录未能更新，请在 Zotero 核对。'};}
+    return{moved:true,...moved};
+   }
    if(options.pdf&&!target.filesEditable)throw new Error('当前文库不允许保存附件，请取消 PDF 选项或更换文库。');
    const sessionID=randomUUID(),item=zoteroItem(paper,this.store.state.summaries[id],options);
    const response=await this.request('saveItems',{sessionID,uri:item.url,items:[item]},true);
    if(response.status!==201)throw new Error('Zotero 未返回保存完成确认，请先核对文库，避免重复导入。');
    let destination=target,placementWarning='';
    if(target.targetID!==current.targetID){try{await this.request('updateSession',{sessionID,target:target.targetID},true);}catch{destination=current;placementWarning='条目已创建，但归入所选位置未获确认。请在 Zotero 核对并手动整理，勿重复导入。';}}
-   const record={at:new Date().toISOString(),libraryID:destination.libraryID,collectionID:destination.collectionID};let warning=placementWarning;
+   const record={sessionID,at:new Date().toISOString(),libraryID:destination.libraryID,collectionID:destination.collectionID};let warning=placementWarning;
    try{await this.store.update(s=>{s.zoteroImports||={};s.zoteroImports[`${id}:${destination.libraryID}`]=record;});}catch{warning='条目已保存，但 PaperDay 本地导入记录未能保存，请勿重复导入。';}
    return{...record,warning,pdfRequested:options.pdf};
   }finally{this.pending.delete(id);}
