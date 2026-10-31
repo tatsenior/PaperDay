@@ -1,7 +1,7 @@
 {
   "name": "paperday",
   "productName": "PaperDay",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "见微 · 每天一篇，发现新的可能",
   "author": "PaperDay",
   "private": true,
@@ -45,11 +45,11 @@
       "signAndEditExecutable": false
     },
     "portable": {
-      "artifactName": "PaperDay-v1.1-Windows.exe"
+      "artifactName": "PaperDay-v1.2-Windows.exe"
     }
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tatsenior/PaperDay.git"
+    "url": "https://github.com/Snowyw1nd/PaperDay.git"
   }
 }
