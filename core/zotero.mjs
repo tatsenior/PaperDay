@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {moveZoteroItem} from './zotero-move.mjs';
 import {canonicalId} from './papers.mjs';
 const base='http://127.0.0.1:23119/connector/';
 const escapeHTML=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -44,8 +45,8 @@ export class ZoteroBridge{
    const prior=current.existingImport;
    if(prior){
     if(prior.libraryID===target.libraryID&&prior.collectionID===target.collectionID)return{alreadyImported:true,at:prior.at};
-    if(!prior.sessionID)throw new Error('此旧记录没有可用保存会话。为避免重复创建，请在 Zotero 中移动原条目；长期位置修改需要 Zotero 10 本地写入授权。');
-    try{await this.request('updateSession',{sessionID:prior.sessionID,target:target.targetID},true);}catch{throw new Error('Zotero 保存会话可能已失效，未重新创建条目。请在 Zotero 中核对并移动原条目。');}
+    if(prior.sessionID){try{await this.request('updateSession',{sessionID:prior.sessionID,target:target.targetID},true);}catch{await moveZoteroItem(this.fetcher,paper,current,target,prior);}}
+    else await moveZoteroItem(this.fetcher,paper,current,target,prior);
     const moved={...prior,libraryID:target.libraryID,collectionID:target.collectionID};
     try{await this.store.update(s=>{delete s.zoteroImports[`${id}:${prior.libraryID}`];s.zoteroImports[`${id}:${target.libraryID}`]=moved;});}catch{return{warning:'位置修改已提交，但本地记录未能更新，请在 Zotero 核对。'};}
     return{moved:true,...moved};
